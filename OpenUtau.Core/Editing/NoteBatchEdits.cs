@@ -4,46 +4,37 @@ using System.Linq;
 using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 
-namespace OpenUtau.Core.Editing
-{
-    public class AddTailNote : BatchEdit
-    {
+namespace OpenUtau.Core.Editing {
+    public class AddTailNote : BatchEdit {
         public string Name => name;
 
         private string lyric;
         private string name;
         private int len;
 
-        public AddTailNote(string lyric, string name, int len)
-        {
+        public AddTailNote(string lyric, string name, int len) {
             this.lyric = lyric;
             this.name = name;
             this.len = len;
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             List<UNote> toAdd = new List<UNote>();
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
-            foreach (var note in notes)
-            {
-                if (note.lyric != lyric && (note.Next == null || note.Next.position > note.End + len))
-                {
-                    var addNote = project.CreateNote(note.tone, note.End, len);
-                    foreach (var exp in note.phonemeExpressions.OrderBy(exp => exp.index))
-                    {
-                        addNote.SetExpression(project, project.tracks[part.trackNo], exp.abbr, new float[] { exp.value });
+            foreach (var note in notes) {
+                if (note.lyric != lyric && (note.Next == null || note.Next.position > note.End + 120)) {
+                    var addNote = project.CreateNote(note.tone, note.End, 120);
+                    foreach (var exp in note.phonemeExpressions.OrderBy(exp => exp.index)) {
+                        addNote.SetExpression(project, project.tracks[part.trackNo], exp.abbr, new float?[] { exp.value });
                     }
                     toAdd.Add(addNote);
                 }
             }
-            if (toAdd.Count == 0)
-            {
+            if (toAdd.Count == 0) {
                 return;
             }
             docManager.StartUndoGroup(true);
-            foreach (var note in toAdd)
-            {
+            foreach (var note in toAdd) {
                 note.lyric = lyric;
                 docManager.ExecuteCmd(new AddNoteCommand(part, note));
             }
@@ -51,44 +42,36 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class AddHeadNote : BatchEdit
-    {
+    public class AddHeadNote : BatchEdit {
         public string Name => name;
 
         private string lyric;
         private string name;
         private int len;
 
-        public AddHeadNote(string lyric, string name, int len)
-        {
+        public AddHeadNote(string lyric, string name, int len) {
             this.lyric = lyric;
             this.name = name;
             this.len = len;
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             List<UNote> toAdd = new List<UNote>();
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
-            foreach (var note in notes)
-            {
-                if (note.lyric != lyric && (note.Prev == null || note.Prev.End < note.position - len))
-                {
-                    var addNote = project.CreateNote(note.tone, note.position - len, len);
-                    foreach (var exp in note.phonemeExpressions.OrderBy(exp => exp.index))
-                    {
-                        addNote.SetExpression(project, project.tracks[part.trackNo], exp.abbr, new float[] { exp.value });
+            foreach (var note in notes) {
+                if (note.lyric != lyric && (note.Next == null || note.Next.position > note.End + 120)) {
+                    var addNote = project.CreateNote(note.tone, note.End, 120);
+                    foreach (var exp in note.phonemeExpressions.OrderBy(exp => exp.index)) {
+                        addNote.SetExpression(project, project.tracks[part.trackNo], exp.abbr, new float?[] { exp.value });
                     }
                     toAdd.Add(addNote);
                 }
             }
-            if (toAdd.Count == 0)
-            {
+            if (toAdd.Count == 0) {
                 return;
             }
             docManager.StartUndoGroup(true);
-            foreach (var note in toAdd)
-            {
+            foreach (var note in toAdd) {
                 note.lyric = lyric;
                 docManager.ExecuteCmd(new AddNoteCommand(part, note));
             }
@@ -96,36 +79,30 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class RemoveTailNote : BatchEdit
-    {
+    public class RemoveTailNote : BatchEdit {
         public string Name => name;
 
         private string lyric;
         private string name;
 
-        public RemoveTailNote(string lyric, string name)
-        {
+        public RemoveTailNote(string lyric, string name) {
             this.lyric = lyric;
             this.name = name;
         }
 
-        bool NeedToBeRemoved(UNote note)
-        {
+        bool NeedToBeRemoved(UNote note) {
             return note.lyric == lyric
                 && (note.Next == null || note.Next.position > note.End);
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             List<UNote> toRemove = notes.Where(NeedToBeRemoved).ToList();
-            if (toRemove.Count == 0)
-            {
+            if (toRemove.Count == 0) {
                 return;
             }
             docManager.StartUndoGroup(true);
-            foreach (var note in toRemove)
-            {
+            foreach (var note in toRemove) {
                 note.lyric = lyric;
                 docManager.ExecuteCmd(new RemoveNoteCommand(part, note));
             }
@@ -133,36 +110,30 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class RemoveHeadNote : BatchEdit
-    {
+    public class RemoveHeadNote : BatchEdit {
         public string Name => name;
 
         private string lyric;
         private string name;
 
-        public RemoveHeadNote(string lyric, string name)
-        {
+        public RemoveHeadNote(string lyric, string name) {
             this.lyric = lyric;
             this.name = name;
         }
 
-        bool NeedToBeRemoved(UNote note)
-        {
+        bool NeedToBeRemoved(UNote note) {
             return note.lyric == lyric
                 && (note.Prev == null || note.Prev.End < note.position);
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             List<UNote> toRemove = notes.Where(NeedToBeRemoved).ToList();
-            if (toRemove.Count == 0)
-            {
+            if (toRemove.Count == 0) {
                 return;
             }
             docManager.StartUndoGroup(true);
-            foreach (var note in toRemove)
-            {
+            foreach (var note in toRemove) {
                 note.lyric = lyric;
                 docManager.ExecuteCmd(new RemoveNoteCommand(part, note));
             }
@@ -170,61 +141,95 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class Transpose : BatchEdit
-    {
+    public class AddBreathNote : BatchEdit {
+        public string Name => name;
+
+        private string lyric;
+        private string name;
+
+        public AddBreathNote(string lyric) {
+            this.lyric = lyric;
+            this.name = "pianoroll.menu.notes.addbreath";
+        }
+
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
+            List<UNote> toAdd = new List<UNote>();
+            var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
+            foreach (var note in notes) {
+                if (note.lyric != lyric) {
+                    int duration;
+                    if (note.Prev == null) {
+                        duration = 480;
+                    } else if (note.Prev.lyric == lyric || note.position - 120 <= note.Prev.End) {
+                        continue;
+                    } else if (note.Prev.End < note.position - 960) {
+                        duration = 480;
+                    } else {
+                        duration = note.position - note.Prev.End;
+                    }
+                    var addNote = project.CreateNote(note.tone, note.position - duration, duration);
+                    foreach (var exp in note.phonemeExpressions.Where(exp => exp.index == 0)) {
+                        addNote.SetExpression(project, project.tracks[part.trackNo], exp.abbr, new float?[] { exp.value });
+                    }
+                    toAdd.Add(addNote);
+                }
+            }
+            if (toAdd.Count == 0) {
+                return;
+            }
+            docManager.StartUndoGroup(true);
+            foreach (var note in toAdd) {
+                note.lyric = lyric;
+                docManager.ExecuteCmd(new AddNoteCommand(part, note));
+            }
+            docManager.EndUndoGroup();
+        }
+    }
+
+    public class Transpose : BatchEdit {
         public string Name => name;
 
         private int deltaNoteNum;
         private string name;
 
-        public Transpose(int deltaNoteNum, string name)
-        {
+        public Transpose(int deltaNoteNum, string name) {
             this.deltaNoteNum = deltaNoteNum;
             this.name = name;
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
+            foreach (var note in notes) {
                 docManager.ExecuteCmd(new MoveNoteCommand(part, note, 0, deltaNoteNum));
             }
             docManager.EndUndoGroup();
         }
     }
 
-    public class QuantizeNotes : BatchEdit
-    {
+    public class QuantizeNotes : BatchEdit {
         public virtual string Name => name;
 
         private int quantize;
         private string name;
 
-        public QuantizeNotes(int quantize)
-        {
+        public QuantizeNotes(int quantize) {
             this.quantize = quantize;
             name = $"pianoroll.menu.notes.quantize{quantize}";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
+            foreach (var note in notes) {
                 int pos = note.position;
                 int end = note.End;
                 int newPos = (int)Math.Round(1.0 * pos / quantize) * quantize;
                 int newEnd = (int)Math.Round(1.0 * end / quantize) * quantize;
-                if (newPos != pos)
-                {
+                if (newPos != pos) {
                     docManager.ExecuteCmd(new MoveNoteCommand(part, note, newPos - pos, 0));
                     docManager.ExecuteCmd(new ResizeNoteCommand(part, note, newEnd - newPos - note.duration));
-                }
-                else if (newEnd != end)
-                {
+                } else if (newEnd != end) {
                     docManager.ExecuteCmd(new ResizeNoteCommand(part, note, newEnd - newPos - note.duration));
                 }
             }
@@ -232,31 +237,27 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class AutoLegato : BatchEdit
-    {
+    public class AutoLegato : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public AutoLegato()
-        {
+        public AutoLegato() {
             name = $"pianoroll.menu.notes.autolegato";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             notes.Sort((a, b) => a.position.CompareTo(b.position));
             docManager.StartUndoGroup(true);
-            for (int i = 0; i < notes.Count - 1; i++)
-            {
+            for (int i = 0; i < notes.Count - 1; i++) {
                 docManager.ExecuteCmd(new ResizeNoteCommand(part, notes[i], notes[i + 1].position - notes[i].position - notes[i].duration));
             }
             docManager.EndUndoGroup();
         }
     }
 
-    public class FixOverlap: BatchEdit {
+    public class FixOverlap : BatchEdit {
         /// <summary>
         /// Fix overlapping notes.
         /// If multiple notes start at the same time, only the one with the highest tone will be kept
@@ -272,23 +273,23 @@ namespace OpenUtau.Core.Editing
 
         public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
-            if(notes.Count == 0){
+            if (notes.Count == 0) {
                 return;
             }
             docManager.StartUndoGroup();
             var currentNote = notes[0];
-            foreach(var note in notes.Skip(1)){
-                if(note.position == currentNote.position){
-                    if(note.tone > currentNote.tone){
+            foreach (var note in notes.Skip(1)) {
+                if (note.position == currentNote.position) {
+                    if (note.tone > currentNote.tone) {
                         docManager.ExecuteCmd(new RemoveNoteCommand(part, currentNote));
                         currentNote = note;
-                    }else{
+                    } else {
                         docManager.ExecuteCmd(new RemoveNoteCommand(part, note));
                     }
-                }else if(note.position < currentNote.End){
+                } else if (note.position < currentNote.End) {
                     docManager.ExecuteCmd(new ResizeNoteCommand(part, currentNote, note.position - currentNote.End));
                     currentNote = note;
-                }else{
+                } else {
                     currentNote = note;
                 }
             }
@@ -301,15 +302,14 @@ namespace OpenUtau.Core.Editing
 
         private string name;
 
-        public HanziToPinyin()
-        {
+        public HanziToPinyin() {
             name = "pianoroll.menu.notes.hanzitopinyin";
         }
-        
+
         public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
-            var pinyinResult = BaseChinesePhonemizer.Romanize(selectedNotes.Select(note=>note.lyric));
+            var pinyinResult = BaseChinesePhonemizer.Romanize(selectedNotes.Select(note => note.lyric));
             docManager.StartUndoGroup(true);
-            foreach(var t in Enumerable.Zip(selectedNotes, pinyinResult,
+            foreach (var t in Enumerable.Zip(selectedNotes, pinyinResult,
                 (note, pinyin) => Tuple.Create(note, pinyin))) {
                 docManager.ExecuteCmd(new ChangeNoteLyricCommand(part, t.Item1, t.Item2));
             }
@@ -317,79 +317,64 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class ResetPitchBends : BatchEdit
-    {
+    public class ResetPitchBends : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public ResetPitchBends()
-        {
+        public ResetPitchBends() {
             name = "pianoroll.menu.notes.reset.pitchbends";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
+            foreach (var note in notes) {
                 docManager.ExecuteCmd(new ResetPitchPointsCommand(part, note));
             }
             docManager.EndUndoGroup();
         }
     }
 
-    public class ResetAllExpressions : BatchEdit
-    {
+    public class ResetAllExpressions : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public ResetAllExpressions()
-        {
+        public ResetAllExpressions() {
             name = "pianoroll.menu.notes.reset.exps";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
-                if (note.phonemeExpressions.Count > 0)
-                {
+            foreach (var note in notes) {
+                if (note.phonemeExpressions.Count > 0) {
                     docManager.ExecuteCmd(new ResetExpressionsCommand(part, note));
                 }
             }
             var curveAbbrs = part.curves.Select(c => c.abbr).ToArray();
-            foreach (var abbr in curveAbbrs)
-            {
+            foreach (var abbr in curveAbbrs) {
                 docManager.ExecuteCmd(new ClearCurveCommand(part, abbr));
             }
             docManager.EndUndoGroup();
         }
     }
 
-    public class ClearVibratos : BatchEdit
-    {
+    public class ClearVibratos : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public ClearVibratos()
-        {
+        public ClearVibratos() {
             name = "pianoroll.menu.notes.clear.vibratos";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
-                if (note.vibrato.length > 0)
-                {
+            foreach (var note in notes) {
+                if (note.vibrato.length > 0) {
                     docManager.ExecuteCmd(new VibratoLengthCommand(part, note, 0));
                 }
             }
@@ -397,35 +382,28 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class ResetVibratos : BatchEdit
-    {
+    public class ResetVibratos : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public ResetVibratos()
-        {
+        public ResetVibratos() {
             name = "pianoroll.menu.notes.reset.vibratos";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
+            foreach (var note in notes) {
                 docManager.ExecuteCmd(new VibratoPeriodCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoPeriod));
                 docManager.ExecuteCmd(new VibratoDepthCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoDepth));
                 docManager.ExecuteCmd(new VibratoFadeInCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoIn));
                 docManager.ExecuteCmd(new VibratoFadeOutCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoOut));
                 docManager.ExecuteCmd(new VibratoShiftCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoShift));
                 docManager.ExecuteCmd(new VibratoDriftCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoDrift));
-                if (NotePresets.Default.AutoVibratoToggle && note.duration >= NotePresets.Default.AutoVibratoNoteDuration)
-                {
+                if (NotePresets.Default.AutoVibratoToggle && note.duration >= NotePresets.Default.AutoVibratoNoteDuration) {
                     docManager.ExecuteCmd(new VibratoLengthCommand(part, note, NotePresets.Default.DefaultVibrato.VibratoLength));
-                }
-                else
-                {
+                } else {
                     docManager.ExecuteCmd(new VibratoLengthCommand(part, note, 0));
                 }
             }
@@ -433,34 +411,27 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class ClearTimings : BatchEdit
-    {
+    public class ClearTimings : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public ClearTimings()
-        {
+        public ClearTimings() {
             name = "pianoroll.menu.notes.reset.phonemetimings";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
+            foreach (var note in notes) {
                 bool shouldClear = false;
-                foreach (var o in note.phonemeOverrides)
-                {
-                    if (o.offset != null || o.preutterDelta != null || o.overlapDelta != null)
-                    {
+                foreach (var o in note.phonemeOverrides) {
+                    if (o.offset != null || o.preutterDelta != null || o.overlapDelta != null) {
                         shouldClear = true;
                         break;
                     }
                 }
-                if (shouldClear)
-                {
+                if (shouldClear) {
                     docManager.ExecuteCmd(new ClearPhonemeTimingCommand(part, note));
                 }
             }
@@ -468,27 +439,21 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class ResetAliases : BatchEdit
-    {
+    public class ResetAliases : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public ResetAliases()
-        {
+        public ResetAliases() {
             name = "pianoroll.menu.notes.reset.aliases";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             docManager.StartUndoGroup(true);
-            foreach (var note in notes)
-            {
-                foreach (var o in note.phonemeOverrides)
-                {
-                    if (o.phoneme != null)
-                    {
+            foreach (var note in notes) {
+                foreach (var o in note.phonemeOverrides) {
+                    if (o.phoneme != null) {
                         docManager.ExecuteCmd(new ChangePhonemeAliasCommand(part, note, o.index, null));
                     }
                 }
@@ -497,52 +462,42 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class LengthenCrossfade : BatchEdit
-    {
+    public class LengthenCrossfade : BatchEdit {
         public virtual string Name => name;
         private string name;
         private double ratio;
 
-        public LengthenCrossfade(double ratio)
-        {
+        public LengthenCrossfade(double ratio) {
             name = "pianoroll.menu.notes.lengthencrossfade";
             this.ratio = ratio;
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
-            if (notes.Count == 0)
-            {
+            if (notes.Count == 0) {
                 return;
             }
             docManager.StartUndoGroup(true);
             var track = project.tracks[part.trackNo];
-            foreach (var note in notes)
-            {
-                foreach (UPhoneme phoneme in part.phonemes)
-                {
-                    if (phoneme.Parent == note && phoneme.Prev != null && phoneme.PositionMs == phoneme.Prev.EndMs)
-                    {
+            foreach (var note in notes) {
+                foreach (UPhoneme phoneme in part.phonemes) {
+                    if (phoneme.Parent == note && phoneme.Prev != null && phoneme.PositionMs == phoneme.Prev.EndMs) {
 
                         double consonantStretch = Math.Pow(2f, 1.0f - phoneme.GetExpression(project, track, Format.Ustx.VEL).Item1 / 100f);
                         double maxPreutter = phoneme.oto.Preutter * consonantStretch;
                         double prevDur = phoneme.Prev.DurationMs;
                         double preutter = phoneme.preutter;
 
-                        if (maxPreutter > prevDur * 0.9f)
-                        {
+                        if (maxPreutter > prevDur * 0.9f) {
                             maxPreutter = prevDur * 0.9f;
                         }
-                        if (maxPreutter > phoneme.preutter)
-                        {
+                        if (maxPreutter > phoneme.preutter) {
                             docManager.ExecuteCmd(new PhonemePreutterCommand(part, note, phoneme.index, (float)(maxPreutter - phoneme.autoPreutter)));
                             preutter = maxPreutter;
                         }
 
                         var overlap = preutter * ratio;
-                        if (overlap > phoneme.autoOverlap)
-                        {
+                        if (overlap > phoneme.autoOverlap) {
                             docManager.ExecuteCmd(new PhonemeOverlapCommand(part, note, phoneme.index, (float)(overlap - phoneme.autoOverlap)));
                         }
                     }
@@ -552,22 +507,18 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class LoadRenderedPitch : BatchEdit
-    {
+    public class LoadRenderedPitch : BatchEdit {
         public virtual string Name => name;
 
         private string name;
 
-        public LoadRenderedPitch()
-        {
+        public LoadRenderedPitch() {
             name = "pianoroll.menu.notes.loadrenderedpitch";
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             var renderer = project.tracks[part.trackNo].RendererSettings.Renderer;
-            if (renderer == null || !renderer.SupportsRenderPitch)
-            {
+            if (renderer == null || !renderer.SupportsRenderPitch) {
                 docManager.ExecuteCmd(new ErrorMessageNotification("Not supported"));
                 return;
             }
@@ -576,24 +527,19 @@ namespace OpenUtau.Core.Editing
             var phrases = part.renderPhrases.Where(phrase => phrase.notes.Any(n => positions.Contains(phrase.position + n.position)));
             docManager.StartUndoGroup(true);
             float minPitD = -1200;
-            if (project.expressions.TryGetValue(Format.Ustx.PITD, out var descriptor))
-            {
+            if (project.expressions.TryGetValue(Format.Ustx.PITD, out var descriptor)) {
                 minPitD = descriptor.min;
             }
-            foreach (var phrase in phrases)
-            {
+            foreach (var phrase in phrases) {
                 var result = renderer.LoadRenderedPitch(phrase);
-                if (result == null)
-                {
+                if (result == null) {
                     continue;
                 }
                 int? lastX = null;
                 int? lastY = null;
                 // TODO: Optimize interpolation and command.
-                for (int i = 0; i < result.tones.Length; i++)
-                {
-                    if (result.tones[i] < 0)
-                    {
+                for (int i = 0; i < result.tones.Length; i++) {
+                    if (result.tones[i] < 0) {
                         continue;
                     }
                     int x = phrase.position - part.position + (int)result.ticks[i];
@@ -602,8 +548,7 @@ namespace OpenUtau.Core.Editing
                     int y = (int)(result.tones[i] * 100 - basePitch);
                     lastX ??= x;
                     lastY ??= y;
-                    if (y > minPitD)
-                    {
+                    if (y > minPitD) {
                         docManager.ExecuteCmd(new SetCurveCommand(
                             project, part, Format.Ustx.PITD, x, y, lastX.Value, lastY.Value));
                     }
@@ -615,51 +560,41 @@ namespace OpenUtau.Core.Editing
         }
     }
 
-    public class BakePitch : BatchEdit
-    {
+    public class BakePitch : BatchEdit {
         public virtual string Name => name;
         private string name;
-        public BakePitch()
-        {
+        public BakePitch() {
             name = "pianoroll.menu.notes.bakepitch";
         }
 
-        struct Point
-        {
+        struct Point {
             public int X;
             public double Y;
             public PitchPointShape shape;
-            public Point(int X, double Y, PitchPointShape shape = PitchPointShape.l)
-            {
+            public Point(int X, double Y, PitchPointShape shape = PitchPointShape.l) {
                 this.X = X;
                 this.Y = Y;
                 this.shape = shape;
             }
 
-            public Point ChangeShape(PitchPointShape shape)
-            {
+            public Point ChangeShape(PitchPointShape shape) {
                 return new Point(X, Y, shape);
             }
         }
 
-        double deltaY(Point pt, Point lineStart, Point lineEnd, PitchPointShape shape)
-        {
+        double deltaY(Point pt, Point lineStart, Point lineEnd, PitchPointShape shape) {
             return pt.Y - MusicMath.InterpolateShape(lineStart.X, lineEnd.X, lineStart.Y, lineEnd.Y, pt.X, shape);
         }
 
-        PitchPointShape DetermineShape(Point start, Point middle, Point end)
-        {
-            if (start.Y == end.Y)
-            {
+        PitchPointShape DetermineShape(Point start, Point middle, Point end) {
+            if (start.Y == end.Y) {
                 return PitchPointShape.l;
             }
             var k = (middle.Y - start.Y) / (end.Y - start.Y);
-            if (k > 0.67)
-            {
+            if (k > 0.67) {
                 return PitchPointShape.o;
             }
-            if (k < 0.33)
-            {
+            if (k < 0.33) {
                 return PitchPointShape.i;
             }
             return PitchPointShape.l;
@@ -675,10 +610,8 @@ namespace OpenUtau.Core.Editing
         * */
         //perpendicularDistance is replaced with deltaY, because the units of X and Y are different. 
         //result doesn't contain the last point to enhance performance in recursion
-        List<Point> simplifyShape(List<Point> pointList, Double epsilon)
-        {
-            if (pointList.Count <= 2)
-            {
+        List<Point> simplifyShape(List<Point> pointList, Double epsilon) {
+            if (pointList.Count <= 2) {
                 return pointList;
             }
 
@@ -692,19 +625,16 @@ namespace OpenUtau.Core.Editing
             var dmax = 0.0;
             var index = 0;
             var end = pointList.Count - 1;
-            for (var i = 1; i < end; i++)
-            {
+            for (var i = 1; i < end; i++) {
                 var d = Math.Abs(deltaY(pointList[i], pointList[0], pointList[end], shape));
-                if (d > dmax)
-                {
+                if (d > dmax) {
                     index = i;
                     dmax = d;
                 }
             }
             // If max distance is greater than epsilon, recursively simplify
             List<Point> results = new List<Point>();
-            if (dmax > epsilon)
-            {
+            if (dmax > epsilon) {
                 // Recursive call
                 var recResults1 = simplifyShape(pointList.GetRange(0, index + 1), epsilon);
                 var recResults2 = simplifyShape(pointList.GetRange(index, pointList.Count - index), epsilon);
@@ -712,39 +642,31 @@ namespace OpenUtau.Core.Editing
                 // Build the result list
                 results.AddRange(recResults1);
                 results.AddRange(recResults2);
-                if (results.Count < 2)
-                {
+                if (results.Count < 2) {
                     throw new Exception("Problem assembling output");
                 }
-            }
-            else
-            {
+            } else {
                 //Just return the start point
                 results.Add(pointList[0].ChangeShape(shape));
             }
             return results;
         }
 
-        public static int LastIndexOfMin<T>(IList<T> self, Func<T, double> selector, int startIndex, int endIndex)
-        {
-            if (self == null)
-            {
+        public static int LastIndexOfMin<T>(IList<T> self, Func<T, double> selector, int startIndex, int endIndex) {
+            if (self == null) {
                 throw new ArgumentNullException("self");
             }
 
-            if (self.Count == 0)
-            {
+            if (self.Count == 0) {
                 throw new ArgumentException("List is empty.", "self");
             }
 
             var min = selector(self[endIndex - 1]);
             int minIndex = endIndex - 1;
 
-            for (int i = endIndex - 1; i >= startIndex; --i)
-            {
+            for (int i = endIndex - 1; i >= startIndex; --i) {
                 var value = selector(self[i]);
-                if (value < min)
-                {
+                if (value < min) {
                     min = value;
                     minIndex = i;
                 }
@@ -753,24 +675,21 @@ namespace OpenUtau.Core.Editing
             return minIndex;
         }
 
-        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager)
-        {
+        public void Run(UProject project, UVoicePart part, List<UNote> selectedNotes, DocManager docManager) {
             TimeAxis timeAxis = project.timeAxis;
             const int pitchInterval = 5;
             var notes = selectedNotes.Count > 0 ? selectedNotes : part.notes.ToList();
             var positions = notes.Select(n => n.position + part.position).ToHashSet();
             var phrases = part.renderPhrases.Where(phrase => phrase.notes.Any(n => positions.Contains(phrase.position + n.position)));
             float minPitD = -1200;
-            if (project.expressions.TryGetValue(Format.Ustx.PITD, out var descriptor))
-            {
+            if (project.expressions.TryGetValue(Format.Ustx.PITD, out var descriptor)) {
                 minPitD = descriptor.min;
             }
             //Dictionary from note start tick to pitch point
             //value is a tuple of (starttick, endtick, pitch points)
             //Here starttick and endtick are project absolute tick, and pitch points are ms relative to the starttick
             var pitchPointsPerNote = new Dictionary<int, Tuple<int, int, List<PitchPoint>>>();
-            foreach (var phrase in phrases)
-            {
+            foreach (var phrase in phrases) {
                 var pitchStart = -phrase.leading;
                 //var ticks = Enumerable.Range(0, phrase.duration).Select(i => i * 5).ToArray();
                 var pitches = phrase.pitches;
@@ -799,12 +718,10 @@ namespace OpenUtau.Core.Editing
                 //note_boundary[i] is the index of the first pitch point after the end of note i
                 var note_boundaries = new int[phrase.notes.Length + 1];
                 note_boundaries[0] = 2;
-                foreach (int i in Enumerable.Range(0, phrase.notes.Length))
-                {
+                foreach (int i in Enumerable.Range(0, phrase.notes.Length)) {
                     var note = phrase.notes[i];
                     while (idx < points.Count
-                        && points[idx].X < note.end)
-                    {
+                        && points[idx].X < note.end) {
                         idx++;
                     }
                     note_boundaries[i + 1] = idx;
@@ -813,8 +730,7 @@ namespace OpenUtau.Core.Editing
                 //otherwise, it is the index of the pitch point with minimal y-distance to the note
                 var adjusted_boundaries = new int[phrase.notes.Length + 1];
                 adjusted_boundaries[0] = 2;
-                foreach (int i in Enumerable.Range(0, phrase.notes.Length - 1))
-                {
+                foreach (int i in Enumerable.Range(0, phrase.notes.Length - 1)) {
                     var note = phrase.notes[i];
                     var notePitch = note.tone * 100;
                     //var zero_point = points.FindIndex(note_boundaries[i], note_boundaries[i + 1] - note_boundaries[i], p => p.Y == 0);
@@ -823,19 +739,15 @@ namespace OpenUtau.Core.Editing
                         .Where(j => (points[j].Y - notePitch) * (points[j - 1].Y - notePitch) <= 0)
                         .DefaultIfEmpty(-1)
                         .First();
-                    if (zero_point != -1)
-                    {
+                    if (zero_point != -1) {
                         adjusted_boundaries[i + 1] = zero_point + 1;
-                    }
-                    else
-                    {
+                    } else {
                         adjusted_boundaries[i + 1] = LastIndexOfMin(points, p => Math.Abs(p.Y - notePitch), note_boundaries[i], note_boundaries[i + 1]) + 2;
                     }
                 }
                 adjusted_boundaries[^1] = note_boundaries[^1];
                 //distribute pitch point to each note
-                foreach (int i in Enumerable.Range(0, phrase.notes.Length))
-                {
+                foreach (int i in Enumerable.Range(0, phrase.notes.Length)) {
                     var note = phrase.notes[i];
                     var pitch = points.GetRange(adjusted_boundaries[i] - 2, adjusted_boundaries[i + 1] - (adjusted_boundaries[i] - 2))
                         .Select(p => new PitchPoint(
@@ -852,15 +764,12 @@ namespace OpenUtau.Core.Editing
             }
             docManager.StartUndoGroup(true);
             //Apply pitch points to notes
-            foreach (var note in notes)
-            {
-                if (pitchPointsPerNote.TryGetValue(note.position, out var tickRangeAndPitch))
-                {
+            foreach (var note in notes) {
+                if (pitchPointsPerNote.TryGetValue(note.position, out var tickRangeAndPitch)) {
                     var pitch = tickRangeAndPitch.Item3;
                     docManager.ExecuteCmd(new ResetPitchPointsCommand(part, note));
                     int index = 0;
-                    foreach (var point in pitch)
-                    {
+                    foreach (var point in pitch) {
                         docManager.ExecuteCmd(new AddPitchPointCommand(part, note, point, index));
                         index++;
                     }
@@ -872,10 +781,8 @@ namespace OpenUtau.Core.Editing
                 }
             }
             //Erase PITD curve that has been converted to pitch points
-            foreach (var note in notes)
-            {
-                if (pitchPointsPerNote.TryGetValue(note.position, out var tickRangeAndPitch))
-                {
+            foreach (var note in notes) {
+                if (pitchPointsPerNote.TryGetValue(note.position, out var tickRangeAndPitch)) {
                     var start = tickRangeAndPitch.Item1 - part.position;
                     var end = tickRangeAndPitch.Item2 - part.position;
                     docManager.ExecuteCmd(new SetCurveCommand(project, part, Format.Ustx.PITD,
