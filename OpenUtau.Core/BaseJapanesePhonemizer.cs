@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using OpenUtau.Api;
 using WanaKanaNet;
+using OpenUtau.Core.G2p;
+using OpenUtau.Core.Ustx;
 
 namespace OpenUtau.Core {
     public abstract class BaseJapanesePhonemizer : Phonemizer {
@@ -45,7 +47,7 @@ namespace OpenUtau.Core {
             Enumerable.Zip(groups, ResultLyrics, ChangeLyric).Last();
         }
         
-        public override void SetUp(Note[][] groups) {
+        public override void SetUp(Note[][] groups, UProject project, UTrack track) {
             RomanizeNotes(groups);
         }
     }
